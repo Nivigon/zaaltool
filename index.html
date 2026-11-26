@@ -182,6 +182,18 @@
   .vt.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   #vNotes{margin-top:0;min-height:160px;border-style:solid}
   body.m-viewer.role-speler #vDrawBox{display:none}
+  .vtabs{display:none;gap:6px;flex-wrap:wrap;flex:1 1 100%}
+  body.role-coach .vtabs{display:flex}
+  body.role-coach #vAnims, body.role-coach #vPatterns, body.role-coach #vForms{display:none}
+  body.role-speler #vCatList{display:none}
+  .vtab{font-size:15px;font-weight:700;padding:10px 16px;border-radius:10px;border:2px solid #d5dbe3;background:#fff}
+  .vtab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tipview{display:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px 26px;grid-column:1;min-height:300px}
+  .tipview h2{margin:0 0 12px}
+  .tipview p{font-size:16px;line-height:1.6}
+  body.tipmode .sheet{display:none !important}
+  body.tipmode #vMoveBox, body.tipmode #vPresent{display:none}
+  body.m-viewer.tipmode .tipview{display:block}
   .vlist{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;flex:1 1 100%;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
   .vlist .lbl{margin-right:4px}
   .vitem{font-size:14px;border-radius:20px;padding:6px 12px}
@@ -228,6 +240,8 @@
   <div id="modeBar"><span class="pill" id="modePill"></span><span id="modeWho"></span><button class="setbtn" id="toSettings" style="margin-left:auto">⚙ Instellingen</button><button class="linkbtn" id="toMenu">← Menu</button></div>
 
   <div id="viewer">
+    <div class="vtabs" id="vTabs"></div>
+    <div class="vlist" id="vCatList"></div>
     <div class="vlist" id="vAnims"></div>
     <div class="vlist" id="vPatterns"></div>
     <div class="vlist" id="vForms"></div>
@@ -307,6 +321,7 @@
       <span class="lbl">Animatie</span>
       <select id="animList"></select>
       <input type="text" id="animName" size="18" placeholder="naam animatie" spellcheck="false">
+      <select class="dz-only" id="animCat" title="Categorie in Zaalhockey voor mij"></select>
       <span class="dz-only" style="gap:4px;align-items:center" id="animLevels" title="Voor welk niveau is deze animatie? Meerdere mogelijk.">
         <button class="lvl" data-l="beginner">Beginner</button><button class="lvl" data-l="gemiddeld">Gemiddeld</button><button class="lvl" data-l="gevorderd">Gevorderd</button>
       </span>
@@ -364,13 +379,14 @@
     </div>
     <textarea id="notes" placeholder="Aantekeningen (optioneel, verschijnt ook in je screenshot)"></textarea>
   </div>
+  <div class="tipview" id="tipView"><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
   <aside id="vSide">
     <div class="vbox" id="vPlayBox">
       <h4>Afspelen</h4>
       <div class="vctl"><button id="vPrev">◀</button><button id="vPlay" class="primary">▶ Afspelen</button><button id="vNext">▶|</button></div>
       <div class="val" id="vStep" style="margin-top:6px"></div>
     </div>
-    <div class="vbox">
+    <div class="vbox" id="vMoveBox">
       <h4>Bewegen</h4>
       <p class="vtip">Sleep spelers om ze te verplaatsen. Pak een stick vast om hem te draaien. Kies de opstelling opnieuw om alles terug te zetten.</p>
     </div>
@@ -1088,9 +1104,12 @@ function fillAnimList(){
   sel.value=String(board.ai);
   $('animName').value=board.anims[board.ai].name||'';
   $('delAnim').disabled=board.anims.length<2;
+  $('animCat').innerHTML=CATS.map(([k,l])=>`<option value="${k}">${l}</option>`).join('');
+  $('animCat').value=board.anims[board.ai].cat||(board.view==='corner'?'strafcorner':'opbouw');
   const lv=board.anims[board.ai].levels||[];
   document.querySelectorAll('#animLevels .lvl').forEach(b=>b.classList.toggle('on',lv.includes(b.dataset.l)));
 }
+$('animCat').addEventListener('change',e=>{board.anims[board.ai].cat=e.target.value;markDirty();});
 document.querySelectorAll('#animLevels .lvl').forEach(b=>b.addEventListener('click',()=>{
   const a=board.anims[board.ai]; a.levels=a.levels||[];
   const l=b.dataset.l, i=a.levels.indexOf(l);
@@ -1321,6 +1340,17 @@ const ROLES={speler:'Speler',coach:'Coach'};
 const BASE_BOARDS=[];
 // niveaus van de vaste opstellingen en patronen (standaard alle niveaus)
 const ALL_LV=['beginner','gemiddeld','gevorderd'];
+// categorieën in Zaalhockey voor mij (coach)
+const CATS=[['opbouw','Opbouw'],['verdediging','Verdediging (press)'],['strafcorner','Strafcorner'],['shootout','Shoot-out'],['tips','Tips and Tricks']];
+const FORM_CAT={'Dobbelsteen 5':'opbouw','Huisje':'opbouw','Huisje opbouw':'opbouw','3 mans opbouw':'opbouw','Omgevallen huisje':'opbouw','Belegeren 6-5 + k':'opbouw','Verdedig 6-5 + k':'verdediging'};
+const PATTERN_CAT={'Opbouw over rechts':'opbouw','Opbouw over links':'opbouw'};
+const CORNER_LEVELS={};
+// tips and tricks: onderwerpen (tekst volgt)
+const TIPS=[
+  {name:'Wissels',text:''},
+  {name:'Wat te doen onder druk',text:''},
+  {name:'Wat is blok zetten',text:''},
+];
 const FORM_LEVELS={
   'Dobbelsteen 5':['beginner','gemiddeld','gevorderd'],
   'Huisje':['beginner','gemiddeld','gevorderd'],
@@ -1358,7 +1388,7 @@ function whoLabel(){return (ROLES[profile.role]||'')+' · '+(LEVELS[profile.leve
 var prevTool=null;
 async function setMode(m){
   stopPlay(); select(null);
-  if(MODE==='viewer'&&m!=='viewer'){readOnly=false; setTool(prevTool||'red'); ['title','sub','notes'].forEach(k=>$(k).readOnly=false); if(realBoard)loadBoard(realBoard); realBoard=null;}
+  if(MODE==='viewer'&&m!=='viewer'){document.body.classList.remove('tipmode');readOnly=false; setTool(prevTool||'red'); ['title','sub','notes'].forEach(k=>$(k).readOnly=false); if(realBoard)loadBoard(realBoard); realBoard=null;}
   if(m==='viewer'&&MODE!=='viewer'){prevTool=tool;}
   MODE=m;
   document.body.classList.remove('role-speler','role-coach');
@@ -1398,9 +1428,11 @@ async function enterViewer(){
   }catch(e){}
   boards.push(JSON.parse(JSON.stringify(realBoard)));
   vItems=[];
-  boards.forEach(b=>{ normalizeAnims(b); b.anims.forEach((a,i)=>{ if((a.levels||[]).includes(lv)) vItems.push({kind:'anim',name:a.name||('Animatie '+(i+1)),board:b,ai:i}); }); });
-  Object.keys(PATTERNS).forEach(n=>{ if((PATTERN_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'pattern',name:n}); });
-  Object.keys(FORM).forEach(n=>{ if((FORM_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'form',name:n}); });
+  boards.forEach(b=>{ normalizeAnims(b); b.anims.forEach((a,i)=>{ if((a.levels||[]).includes(lv)) vItems.push({kind:'anim',name:a.name||('Animatie '+(i+1)),board:b,ai:i,cat:a.cat||(b.view==='corner'?'strafcorner':'opbouw')}); }); });
+  Object.keys(PATTERNS).forEach(n=>{ if((PATTERN_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'pattern',name:n,cat:PATTERN_CAT[n]||'opbouw'}); });
+  Object.keys(FORM).forEach(n=>{ if((FORM_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'form',name:n,cat:FORM_CAT[n]||'opbouw'}); });
+  Object.keys(CORNER_FORM).forEach(n=>{ if((CORNER_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'corner',name:n,cat:'strafcorner'}); });
+  TIPS.forEach(t=>vItems.push({kind:'tip',name:t.name,text:t.text,cat:'tips'}));
   const box=(id,title,kind)=>{
     const el2=$(id); el2.innerHTML=`<span class="lbl">${title}</span>`;
     const its=vItems.filter(x=>x.kind===kind);
@@ -1408,7 +1440,24 @@ async function enterViewer(){
     its.forEach(it=>{const b=document.createElement('button');b.className='vitem';b.textContent=formLabel(it.name);b.addEventListener('click',()=>showItem(it));it.btn=b;el2.appendChild(b);});
   };
   box('vAnims','Animaties','anim'); box('vPatterns','Patronen','pattern'); box('vForms','Opstellingen','form');
-  showItem(vItems[0]||null);
+  if(profile.role==='coach'){
+    const tabs=$('vTabs'); tabs.innerHTML='';
+    CATS.forEach(([k,label])=>{const b=document.createElement('button');b.className='vtab';b.dataset.cat=k;b.textContent=label;b.addEventListener('click',()=>showCat(k));tabs.appendChild(b);});
+    showCat(vCat||'opbouw');
+  }else{
+    showItem(vItems.find(x=>['anim','pattern','form'].includes(x.kind))||null);
+  }
+}
+var vCat=null;
+function showCat(k){
+  vCat=k;
+  document.querySelectorAll('#vTabs .vtab').forEach(b=>b.classList.toggle('on',b.dataset.cat===k));
+  const box=$('vCatList'); box.innerHTML='';
+  const its=vItems.filter(x=>x.cat===k);
+  if(!its.length){box.insertAdjacentHTML('beforeend',k==='shootout'?'<span class="empty">Shoot-out is nog in ontwikkeling.</span>':'<span class="empty">Nog niets voor jouw niveau in deze categorie.</span>');}
+  const kindLbl={anim:'Animatie',pattern:'Patroon',form:'Opstelling',corner:'Strafcorner',tip:'Tip'};
+  its.forEach(it=>{const b=document.createElement('button');b.className='vitem';b.textContent=formLabel(it.name);b.title=kindLbl[it.kind]||'';b.addEventListener('click',()=>showItem(it));it.btn=b;box.appendChild(b);});
+  showItem(its[0]||null);
 }
 function tempBoard(title){return {id:'_view',title,sub:'',notes:'',view:'full',sticks:true,explain:{},anims:[{id:'v',name:title,steps:[{caption:'',objs:[]}],speed:1.5,pause:0.8}],ai:0};}
 function showView(tb){
@@ -1419,7 +1468,25 @@ function showView(tb){
 function showItem(it){
   vItems.forEach(x=>x.btn&&x.btn.classList.toggle('cur',x===it)); vCur=it;
   $('vNotes').value=it?((lsGet(LS_OPM)||{})[opmKey(it)]||''):''; $('vNotes').disabled=!it;
+  document.body.classList.toggle('tipmode',!!it&&it.kind==='tip');
+  if(it&&it.kind==='tip'){
+    stopPlay(); $('tipTitle').textContent=it.name;
+    $('tipBody').innerHTML=it.text?it.text:'<p class="empty">De uitleg voor dit onderwerp volgt binnenkort.</p>';
+    $('vPlayBox').style.display='none'; $('vDrawBox').style.display='none';
+    return;
+  }
+  $('vDrawBox').style.display='';
   if(!it){showView(tempBoard('Nog geen inhoud voor jouw niveau'));return;}
+  if(it.kind==='corner'){
+    const tb=tempBoard(it.name); tb.sub='Strafcorner'; tb.view='corner';
+    const isDef=CORNER_FORM[it.name]&&CORNER_FORM[it.name].keeper;
+    let objs2=[];
+    if(isDef){objs2=cornerTeamObjs(objs2,'green','k2',it.name);objs2=cornerTeamObjs(objs2,'red','k1','Corner over rechts');}
+    else{objs2=cornerTeamObjs(objs2,'red','k1',it.name);objs2=cornerTeamObjs(objs2,'green','k2','Verdediging');}
+    tb.anims[0].steps[0].objs=objs2;
+    tb.explain=isDef?{green:{form:it.name,text:uitlegText(it.name)}}:{red:{form:it.name,text:uitlegText(it.name)}};
+    showView(tb); return;
+  }
   if(it.kind==='anim'){
     const b=it.board, a=JSON.parse(JSON.stringify(b.anims[it.ai]));
     const tb={...tempBoard(it.name),sub:b.title||'',view:b.view||'full',sticks:b.sticks!==false,explain:JSON.parse(JSON.stringify(b.explain||{})),anims:[a],ai:0};
