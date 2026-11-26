@@ -1392,12 +1392,12 @@ async function importEmbedded(){
 const LEVELS={beginner:'Beginner',gemiddeld:'Gemiddeld',gevorderd:'Gevorderd'};
 const ROLES={speler:'Speler',coach:'Coach'};
 // basismodel: vaste oefeningen die in de tool zelf zitten (aangevuld door Claude)
-const BASE_BOARDS=[];
+const BASE_BOARDS=[{"id": "base-press-1", "title": "Press basis", "sub": "", "notes": "", "view": "full", "sticks": true, "explain": {}, "anims": [{"id": "schuif-mee", "name": "Schuif mee, ben één geheel", "levels": ["beginner", "gemiddeld", "gevorderd"], "cat": "verdediging", "steps": [{"caption": "Bal boven: de dobbelsteen schuift mee naar boven, 5 zet druk", "objs": [{"id": "r-1", "type": "red", "x": 330, "y": 150, "label": "1"}, {"id": "r-2", "type": "red", "x": 330, "y": 430, "label": "2"}, {"id": "g-k", "type": "k2", "x": 1025, "y": 290, "label": "K"}, {"id": "g-1", "type": "green", "x": 875, "y": 330, "label": "1"}, {"id": "g-2", "type": "green", "x": 875, "y": 130, "label": "2"}, {"id": "g-3", "type": "green", "x": 700, "y": 230, "label": "3"}, {"id": "g-4", "type": "green", "x": 500, "y": 355, "label": "4"}, {"id": "g-5", "type": "green", "x": 420, "y": 150, "label": "5"}, {"id": "bal", "type": "ball", "x": 354, "y": 156, "label": ""}, {"id": "p0", "type": "pass", "x1": 354, "y1": 164, "x2": 354, "y2": 416, "color": "#ffe14d", "width": 4}]}, {"caption": "Bal onder: de dobbelsteen schuift mee naar onder, 4 zet druk", "objs": [{"id": "r-1", "type": "red", "x": 330, "y": 150, "label": "1"}, {"id": "r-2", "type": "red", "x": 330, "y": 430, "label": "2"}, {"id": "g-k", "type": "k2", "x": 1025, "y": 290, "label": "K"}, {"id": "g-1", "type": "green", "x": 875, "y": 450, "label": "1"}, {"id": "g-2", "type": "green", "x": 875, "y": 250, "label": "2"}, {"id": "g-3", "type": "green", "x": 700, "y": 350, "label": "3"}, {"id": "g-4", "type": "green", "x": 420, "y": 430, "label": "4"}, {"id": "g-5", "type": "green", "x": 500, "y": 225, "label": "5"}, {"id": "bal", "type": "ball", "x": 354, "y": 436, "label": ""}, {"id": "p1", "type": "pass", "x1": 354, "y1": 444, "x2": 354, "y2": 170, "color": "#ffe14d", "width": 4}]}, {"caption": "Bal boven: de dobbelsteen schuift mee naar boven, 5 zet druk", "objs": [{"id": "r-1", "type": "red", "x": 330, "y": 150, "label": "1"}, {"id": "r-2", "type": "red", "x": 330, "y": 430, "label": "2"}, {"id": "g-k", "type": "k2", "x": 1025, "y": 290, "label": "K"}, {"id": "g-1", "type": "green", "x": 875, "y": 330, "label": "1"}, {"id": "g-2", "type": "green", "x": 875, "y": 130, "label": "2"}, {"id": "g-3", "type": "green", "x": 700, "y": 230, "label": "3"}, {"id": "g-4", "type": "green", "x": 500, "y": 355, "label": "4"}, {"id": "g-5", "type": "green", "x": 420, "y": 150, "label": "5"}, {"id": "bal", "type": "ball", "x": 354, "y": 156, "label": ""}, {"id": "p2", "type": "pass", "x1": 354, "y1": 164, "x2": 354, "y2": 416, "color": "#ffe14d", "width": 4}]}, {"caption": "Bal onder: de dobbelsteen schuift mee naar onder, 4 zet druk", "objs": [{"id": "r-1", "type": "red", "x": 330, "y": 150, "label": "1"}, {"id": "r-2", "type": "red", "x": 330, "y": 430, "label": "2"}, {"id": "g-k", "type": "k2", "x": 1025, "y": 290, "label": "K"}, {"id": "g-1", "type": "green", "x": 875, "y": 450, "label": "1"}, {"id": "g-2", "type": "green", "x": 875, "y": 250, "label": "2"}, {"id": "g-3", "type": "green", "x": 700, "y": 350, "label": "3"}, {"id": "g-4", "type": "green", "x": 420, "y": 430, "label": "4"}, {"id": "g-5", "type": "green", "x": 500, "y": 225, "label": "5"}, {"id": "bal", "type": "ball", "x": 354, "y": 436, "label": ""}]}], "speed": 1.6, "pause": 0.5, "loop": true}], "ai": 0}];
 // niveaus van de vaste opstellingen en patronen (standaard alle niveaus)
 const ALL_LV=['beginner','gemiddeld','gevorderd'];
 // categorieën in Zaalhockey voor mij (coach)
 const CATS=[['verdediging','Press (verdediging)'],['opbouw','Opbouw (aanval)'],['strafcorner','Strafcorner'],['shootout','Shoot-out'],['tips','Tips and Tricks']];
-const FORM_CAT={'Dobbelsteen 5':'opbouw','Huisje':'opbouw','Huisje opbouw':'opbouw','3 mans opbouw':'opbouw','Omgevallen huisje':'opbouw','Belegeren 6-5 + k':'opbouw','Verdedig 6-5 + k':'verdediging'};
+const FORM_CAT={'Dobbelsteen 5':['verdediging','opbouw'],'Huisje':'opbouw','Huisje opbouw':'opbouw','3 mans opbouw':'opbouw','Omgevallen huisje':'opbouw','Belegeren 6-5 + k':'opbouw','Verdedig 6-5 + k':'verdediging'};
 const PATTERN_CAT={'Opbouw over rechts':'opbouw','Opbouw over links':'opbouw'};
 const CORNER_LEVELS={};
 // tips and tricks: onderwerpen (tekst volgt)
@@ -1486,7 +1486,7 @@ async function enterViewer(){
   vItems=[];
   boards.forEach(b=>{ normalizeAnims(b); b.anims.forEach((a,i)=>{ if((a.levels||[]).includes(lv)) vItems.push({kind:'anim',name:a.name||('Animatie '+(i+1)),board:b,ai:i,cat:a.cat||(b.view==='corner'?'strafcorner':'opbouw')}); }); });
   Object.keys(PATTERNS).forEach(n=>{ if((PATTERN_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'pattern',name:n,cat:PATTERN_CAT[n]||'opbouw'}); });
-  Object.keys(FORM).forEach(n=>{ if((FORM_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'form',name:n,cat:FORM_CAT[n]||'opbouw'}); });
+  Object.keys(FORM).forEach(n=>{ if((FORM_LEVELS[n]||ALL_LV).includes(lv)) [].concat(FORM_CAT[n]||'opbouw').forEach(c=>vItems.push({kind:'form',name:n,cat:c})); });
   Object.keys(CORNER_FORM).forEach(n=>{ if((CORNER_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'corner',name:n,cat:'strafcorner'}); });
   TIPS.forEach(t=>vItems.push({kind:'tip',name:t.name,text:t.text,cat:'tips'}));
   const box=(id,title,kind)=>{
@@ -1520,7 +1520,8 @@ function showCat(k){
   $('vCatTitle').textContent=(CATS.find(c=>c[0]===k)||[,''])[1];
   const box=$('vCatList'); box.innerHTML='';
   const ord={form:0,pattern:1,corner:2,anim:3,tip:4};
-  const its=vItems.filter(x=>x.cat===k).sort((a,b)=>ord[a.kind]-ord[b.kind]);
+  const first={verdediging:'Dobbelsteen 5',opbouw:'Huisje'}[k];
+  const its=vItems.filter(x=>x.cat===k).sort((a,b)=>((b.kind==='form'&&b.name===first)-(a.kind==='form'&&a.name===first))||(ord[a.kind]-ord[b.kind]));
   if(!its.length){box.insertAdjacentHTML('beforeend',k==='shootout'?'<span class="empty">Shoot-out is nog in ontwikkeling.</span>':'<span class="empty">Nog niets voor jouw niveau in deze categorie.</span>');}
   const kindLbl={anim:'Animatie',pattern:'Patroon',form:'Opstelling',corner:'Strafcorner',tip:'Tip'};
   its.forEach(it=>{const b=document.createElement('button');b.className='vitem';b.textContent=formLabel(it.name);b.title=kindLbl[it.kind]||'';b.addEventListener('click',()=>showItem(it));it.btn=b;box.appendChild(b);});
@@ -1588,11 +1589,11 @@ document.querySelectorAll('#vDrawBox .vsw').forEach(b=>b.addEventListener('click
 }));
 $('vErase').addEventListener('click',()=>{board.steps[curStep].objs=objs().filter(o=>!isLine(o));render();});
 const LS_OPM='zh-formaties-opmerkingen';
-function opmKey(it){return it?(it.kind+':'+(it.kind==='anim'?(it.board.id+':'+((it.board.anims[it.ai]||{}).id||it.ai)):it.name)):'';}
+function opmKey(it){return it?((it.cat&&profile.role==='coach'?it.cat+':':'')+it.kind+':'+(it.kind==='anim'?(it.board.id+':'+((it.board.anims[it.ai]||{}).id||it.ai)):it.name)):'';}
 
 /* ---------- opmerkingen als uitklapbare punten, met optionele animatie ---------- */
 // basismodel: vaste punten per onderdeel (sleutel = soort:naam), aangevuld door Claude
-const BASE_POINTS={};
+const BASE_POINTS={"verdediging:form:Dobbelsteen 5": [{"t": "Opstelling", "x": "We spelen bij AMHC bij de jongste jeugd en junioren in een dobbelsteen 5. Je hebt andere systemen en sommige teams gebruiken die, maar dit is de eenvoudigste en wordt voor de meeste teams aangeraden.", "anim": null}, {"t": "Lijnen, geen man", "x": "Je kunt verdedigen door mandekking te spelen of zone (lijnen verdedigen). Bij AMHC proberen we lijnen te verdedigen. Dit doen we in een dobbelsteen 5. Samen verdedig je de passlijnen van je verdediging naar voren.", "anim": null}, {"t": "Schuif mee, ben één geheel", "x": "Volg samen de bal. Gaat de bal naar de andere kant, dan schuift de hele dobbelsteen mee en zet de dichtstbijzijnde voorste speler druk.", "anim": {"b": "base-press-1", "a": "schuif-mee"}}]};
 const LS_PTS='zh-formaties-punten';
 let ptEditing=false, vBoards=[];
 function getPoints(it){if(!it)return [];const loc=lsGet(LS_PTS)||{};const k=opmKey(it);return JSON.parse(JSON.stringify(loc[k]||BASE_POINTS[k]||[]));}
@@ -1647,8 +1648,9 @@ function playLinked(ref){
 }
 
 /* ---------- laatste updates en live-check ---------- */
-const APP_VERSION='2026-11-26.6';
+const APP_VERSION='2026-11-26.7';
 const CHANGELOG=[
+  {v:'2026-11-26.7',d:'26 nov',t:'Press start met groene dobbelsteen 5, Opbouw met groen huisje. Drie opmerkingen bij Press, met de animatie Schuif mee, ben één geheel'},
   {v:'2026-11-26.6',d:'26 nov',t:'Veld tegen de linkerkant, opmerkingen rechts als uitklapbare punten (met optionele animatie en afspeelknop), onderdelenmenu onder elkaar met Press bovenaan'},
   {v:'2026-11-26.5',d:'26 nov',t:'Zaalhockey voor mij (coach) begint met een menu van onderdelen; daarna een duidelijke titel met een Menu-knop. Opstellingen worden in groen getoond'},
   {v:'2026-11-26.4',d:'26 nov',t:'Knopje rechtsonder met de laatste updates en of je de nieuwste live versie hebt'},
