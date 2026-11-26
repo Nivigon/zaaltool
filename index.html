@@ -185,7 +185,7 @@
   body.m-viewer .bar{display:none}
   body.m-viewer .hint, body.m-viewer .sheet textarea:placeholder-shown{display:none}
   #vSide{display:none}
-  body.m-viewer .wrap{max-width:1500px;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:12px;align-items:start}
+  body.m-viewer .wrap{max-width:none;margin:0;padding-left:12px;display:grid;grid-template-columns:minmax(0,1080px) 380px;justify-content:start;gap:14px;align-items:start}
   body.m-viewer #modeBar, body.m-viewer #viewer{grid-column:1/-1}
   body.m-viewer .sheet{grid-column:1}
   body.m-viewer #vSide{display:flex;flex-direction:column;gap:10px;grid-column:2}
@@ -196,14 +196,35 @@
   .vrow{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
   .vt{font-size:13px;padding:5px 8px}
   .vt.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-  #vNotes{margin-top:0;min-height:160px;border-style:solid}
+  .pthd{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .pthd h4{margin:0}
+  .ptedit{font-size:12px;padding:3px 8px;border-radius:20px}
+  .ptlist{list-style:none;margin:0;padding:0}
+  .ptlist li{border-top:1px solid var(--line)}
+  .ptlist li:first-child{border-top:none}
+  .pthead{display:flex;align-items:center;gap:8px;width:100%}
+  .pthead .ptt{flex:1;text-align:left;border:none;background:none;padding:9px 0;font-size:15px;font-weight:600;display:flex;gap:8px;align-items:flex-start;cursor:pointer;color:var(--ink)}
+  .ptt .arr{display:inline-block;color:var(--accent);font-size:12px;margin-top:3px;transition:transform .15s}
+  li.open .ptt .arr{transform:rotate(90deg)}
+  .ptplay{flex:0 0 auto;font-size:12px;padding:4px 9px;border-radius:20px;background:var(--accent);color:#fff;border-color:var(--accent)}
+  .ptbody{display:none;font-size:14px;line-height:1.5;color:#33404d;padding:0 0 10px 20px;white-space:pre-wrap}
+  li.open .ptbody{display:block}
+  .ptempty{font-size:13px;color:var(--muted);padding:4px 0}
+  .pteditor{display:none}
+  #vPointsBox.editing .ptlist{display:none}
+  #vPointsBox.editing .pteditor{display:block}
+  .pte{border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px}
+  .pte input,.pte textarea,.pte select{font:inherit;font-size:14px;border:1px solid #c9d0da;border-radius:6px;padding:5px 7px;width:100%}
+  .pte textarea{min-height:60px;resize:vertical;margin:0}
+  .pte .row{display:flex;gap:6px;justify-content:space-between}
   body.m-viewer.role-speler #vDrawBox{display:none}
-  .catmenu{display:none;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;flex:1 1 100%;max-width:1000px;margin:10px auto 0}
-  body.role-coach.catmode .catmenu{display:grid}
+  .catmenu{display:none;flex-direction:column;gap:12px;flex:1 1 100%;max-width:640px;margin:10px 0 0}
+  body.role-coach.catmode .catmenu{display:flex}
   body.role-coach.catmode .sheet, body.role-coach.catmode #vSide, body.role-coach.catmode #vCatList, body.role-coach.catmode .tipview, body.role-coach.catmode .cathead{display:none !important}
-  .cattile{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:22px 22px;border-radius:14px;border:2px solid #d5dbe3;background:#fff;min-height:130px;cursor:pointer}
+  .cattile{display:grid;grid-template-columns:52px 1fr;column-gap:14px;align-items:center;text-align:left;padding:18px 20px;border-radius:14px;border:2px solid #d5dbe3;background:#fff;cursor:pointer}
+  .cattile .ic{grid-row:1/3}
   .cattile:hover{border-color:var(--accent);background:#f4f9fd}
-  .cattile .ic{font-size:32px}
+  .cattile .ic{font-size:34px;text-align:center}
   .cattile b{font-size:21px}
   .cattile small{color:var(--muted);font-size:14px}
   .cathead{display:none;align-items:center;gap:14px;flex:1 1 100%}
@@ -415,15 +436,17 @@
   </div>
   <div class="tipview" id="tipView"><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
   <aside id="vSide">
+    <div class="vbox" id="vPointsBox">
+      <div class="pthd"><h4>Opmerkingen</h4><button id="ptEdit" class="ptedit">✎ Bewerken</button></div>
+      <ul id="ptList" class="ptlist"></ul>
+      <div id="ptEditor" class="pteditor"></div>
+    </div>
     <div class="vbox" id="vPlayBox">
       <h4>Afspelen</h4>
       <div class="vctl"><button id="vPrev">◀</button><button id="vPlay" class="primary">▶ Afspelen</button><button id="vNext">▶|</button></div>
       <div class="val" id="vStep" style="margin-top:6px"></div>
     </div>
-    <div class="vbox" id="vMoveBox">
-      <h4>Bewegen</h4>
-      <p class="vtip">Sleep spelers om ze te verplaatsen. Pak een stick vast om hem te draaien. Kies de opstelling opnieuw om alles terug te zetten.</p>
-    </div>
+
     <div class="vbox" id="vDrawBox">
       <h4>Tekenen</h4>
       <div class="vrow">
@@ -438,10 +461,7 @@
         <button id="vErase" style="margin-left:auto">🧽 Wis tekeningen</button>
       </div>
     </div>
-    <div class="vbox">
-      <h4>Opmerkingen</h4>
-      <textarea id="vNotes" placeholder="Schrijf hier je opmerkingen bij deze opstelling of animatie."></textarea>
-    </div>
+    <p class="vtip" id="vMoveBox">Sleep spelers om ze te verplaatsen en pak een stick vast om hem te draaien. Klik de opstelling opnieuw aan om alles terug te zetten.</p>
     <button id="vPresent">🎬 Presentatie</button>
   </aside>
 
@@ -1376,7 +1396,7 @@ const BASE_BOARDS=[];
 // niveaus van de vaste opstellingen en patronen (standaard alle niveaus)
 const ALL_LV=['beginner','gemiddeld','gevorderd'];
 // categorieën in Zaalhockey voor mij (coach)
-const CATS=[['opbouw','Opbouw'],['verdediging','Verdediging (press)'],['strafcorner','Strafcorner'],['shootout','Shoot-out'],['tips','Tips and Tricks']];
+const CATS=[['verdediging','Press (verdediging)'],['opbouw','Opbouw (aanval)'],['strafcorner','Strafcorner'],['shootout','Shoot-out'],['tips','Tips and Tricks']];
 const FORM_CAT={'Dobbelsteen 5':'opbouw','Huisje':'opbouw','Huisje opbouw':'opbouw','3 mans opbouw':'opbouw','Omgevallen huisje':'opbouw','Belegeren 6-5 + k':'opbouw','Verdedig 6-5 + k':'verdediging'};
 const PATTERN_CAT={'Opbouw over rechts':'opbouw','Opbouw over links':'opbouw'};
 const CORNER_LEVELS={};
@@ -1462,6 +1482,7 @@ async function enterViewer(){
     for(const it of list){ if(it.id===realBoard.id) continue; const b=await store.get(it.id).catch(()=>null); if(b) boards.push(b); }
   }catch(e){}
   boards.push(JSON.parse(JSON.stringify(realBoard)));
+  vBoards=boards;
   vItems=[];
   boards.forEach(b=>{ normalizeAnims(b); b.anims.forEach((a,i)=>{ if((a.levels||[]).includes(lv)) vItems.push({kind:'anim',name:a.name||('Animatie '+(i+1)),board:b,ai:i,cat:a.cat||(b.view==='corner'?'strafcorner':'opbouw')}); }); });
   Object.keys(PATTERNS).forEach(n=>{ if((PATTERN_LEVELS[n]||ALL_LV).includes(lv)) vItems.push({kind:'pattern',name:n,cat:PATTERN_CAT[n]||'opbouw'}); });
@@ -1513,7 +1534,7 @@ function showView(tb){
 }
 function showItem(it){
   vItems.forEach(x=>x.btn&&x.btn.classList.toggle('cur',x===it)); vCur=it;
-  $('vNotes').value=it?((lsGet(LS_OPM)||{})[opmKey(it)]||''):''; $('vNotes').disabled=!it;
+  ptEditing=false; renderPoints();
   document.body.classList.toggle('tipmode',!!it&&it.kind==='tip');
   if(it&&it.kind==='tip'){
     stopPlay(); $('tipTitle').textContent=it.name;
@@ -1567,12 +1588,68 @@ document.querySelectorAll('#vDrawBox .vsw').forEach(b=>b.addEventListener('click
 }));
 $('vErase').addEventListener('click',()=>{board.steps[curStep].objs=objs().filter(o=>!isLine(o));render();});
 const LS_OPM='zh-formaties-opmerkingen';
-function opmKey(it){return it?(it.kind+':'+(it.kind==='anim'?(it.board.id+':'+it.ai):it.name)):'';}
-$('vNotes').addEventListener('input',()=>{if(!vCur)return;const m=lsGet(LS_OPM)||{};m[opmKey(vCur)]=$('vNotes').value;lsSet(LS_OPM,m);});
+function opmKey(it){return it?(it.kind+':'+(it.kind==='anim'?(it.board.id+':'+((it.board.anims[it.ai]||{}).id||it.ai)):it.name)):'';}
+
+/* ---------- opmerkingen als uitklapbare punten, met optionele animatie ---------- */
+// basismodel: vaste punten per onderdeel (sleutel = soort:naam), aangevuld door Claude
+const BASE_POINTS={};
+const LS_PTS='zh-formaties-punten';
+let ptEditing=false, vBoards=[];
+function getPoints(it){if(!it)return [];const loc=lsGet(LS_PTS)||{};const k=opmKey(it);return JSON.parse(JSON.stringify(loc[k]||BASE_POINTS[k]||[]));}
+function savePoints(it,pts){const loc=lsGet(LS_PTS)||{};loc[opmKey(it)]=pts;lsSet(LS_PTS,loc);}
+function allAnims(){const out=[];vBoards.forEach(b=>{(b.anims||[]).forEach((a,i)=>out.push({b:b.id,a:a.id,label:(a.name||('Animatie '+(i+1)))+(b.title?' · '+b.title:'')}));});return out;}
+function findAnim(ref){const b=vBoards.find(x=>x.id===ref.b);if(!b)return null;const ai=b.anims.findIndex(a=>a.id===ref.a);return ai<0?null:{board:b,ai};}
+function renderPoints(){
+  const box=$('vPointsBox'), list=$('ptList'), ed=$('ptEditor');
+  box.classList.toggle('editing',ptEditing);
+  $('ptEdit').textContent=ptEditing?'✓ Klaar':'✎ Bewerken';
+  $('ptEdit').style.display=(profile.role==='coach'&&vCur)?'':'none';
+  const pts=getPoints(vCur);
+  if(!ptEditing){
+    list.innerHTML='';
+    if(!pts.length){list.innerHTML='<li class="ptempty">'+(vCur?'Nog geen opmerkingen bij dit onderdeel.':'')+'</li>';return;}
+    pts.forEach(p=>{
+      const li=document.createElement('li');
+      li.innerHTML=`<div class="pthead"><button class="ptt"><span class="arr">▶</span><span>${escapeHtml(p.t||'')}</span></button>${p.anim&&findAnim(p.anim)?'<button class="ptplay" title="Speel de animatie af">▶ Afspelen</button>':''}</div><div class="ptbody"></div>`;
+      li.querySelector('.ptbody').textContent=p.x||'';
+      li.querySelector('.ptt').addEventListener('click',()=>li.classList.toggle('open'));
+      const pl=li.querySelector('.ptplay'); if(pl) pl.addEventListener('click',()=>playLinked(p.anim));
+      list.appendChild(li);
+    });
+    return;
+  }
+  // bewerken
+  ed.innerHTML='';
+  const anims=allAnims();
+  pts.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='pte';
+    d.innerHTML=`<input placeholder="Punt (kort)" value="${escapeHtml(p.t||'')}"><textarea placeholder="Uitleg die openklapt"></textarea>
+      <select><option value="">Geen animatie</option>${anims.map((a,j)=>`<option value="${j}">${escapeHtml(a.label)}</option>`).join('')}</select>
+      <div class="row"><span><button data-m="-1">↑</button> <button data-m="1">↓</button></span><button class="warn" data-del>Verwijder</button></div>`;
+    d.querySelector('textarea').value=p.x||'';
+    const sel=d.querySelector('select'); const idx=p.anim?anims.findIndex(a=>a.b===p.anim.b&&a.a===p.anim.a):-1; sel.value=idx>=0?String(idx):'';
+    const upd=()=>{const all=getPoints(vCur);all[i]={t:d.querySelector('input').value,x:d.querySelector('textarea').value,anim:sel.value!==''?{b:anims[+sel.value].b,a:anims[+sel.value].a}:null};savePoints(vCur,all);};
+    d.querySelector('input').addEventListener('input',upd); d.querySelector('textarea').addEventListener('input',upd); sel.addEventListener('change',upd);
+    d.querySelector('[data-del]').addEventListener('click',()=>{const all=getPoints(vCur);all.splice(i,1);savePoints(vCur,all);renderPoints();});
+    d.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{const all=getPoints(vCur);const j=i+(+b.dataset.m);if(j<0||j>=all.length)return;[all[i],all[j]]=[all[j],all[i]];savePoints(vCur,all);renderPoints();}));
+    ed.appendChild(d);
+  });
+  const add=document.createElement('button'); add.className='primary'; add.textContent='+ Punt toevoegen';
+  add.addEventListener('click',()=>{const all=getPoints(vCur);all.push({t:'',x:'',anim:null});savePoints(vCur,all);renderPoints();const ins=ed.querySelectorAll('.pte input');if(ins.length)ins[ins.length-1].focus();});
+  ed.appendChild(add);
+}
+$('ptEdit').addEventListener('click',()=>{ptEditing=!ptEditing;renderPoints();});
+function playLinked(ref){
+  const f=findAnim(ref); if(!f) return;
+  const a=JSON.parse(JSON.stringify(f.board.anims[f.ai]));
+  const tb={...tempBoard(a.name||'Animatie'),sub:(vCur?formLabel(vCur.name)+' · ':'')+'animatie',view:f.board.view||'full',sticks:f.board.sticks!==false,explain:JSON.parse(JSON.stringify(f.board.explain||{})),anims:[a],ai:0};
+  showView(tb); if(board.steps.length>1) setTimeout(()=>play(),300);
+}
 
 /* ---------- laatste updates en live-check ---------- */
-const APP_VERSION='2026-11-26.5';
+const APP_VERSION='2026-11-26.6';
 const CHANGELOG=[
+  {v:'2026-11-26.6',d:'26 nov',t:'Veld tegen de linkerkant, opmerkingen rechts als uitklapbare punten (met optionele animatie en afspeelknop), onderdelenmenu onder elkaar met Press bovenaan'},
   {v:'2026-11-26.5',d:'26 nov',t:'Zaalhockey voor mij (coach) begint met een menu van onderdelen; daarna een duidelijke titel met een Menu-knop. Opstellingen worden in groen getoond'},
   {v:'2026-11-26.4',d:'26 nov',t:'Knopje rechtsonder met de laatste updates en of je de nieuwste live versie hebt'},
   {v:'2026-11-26.3',d:'26 nov',t:'Zaalhockey voor mij (coach): tabbladen Opbouw, Verdediging (press), Strafcorner, Shoot-out en Tips and Tricks'},
