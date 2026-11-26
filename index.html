@@ -151,6 +151,22 @@
   #dzBtn:hover{background:#ffffff88}
   body.m-designer #dzBtn, body.m-coach #dzBtn, body.m-viewer #dzBtn{border-color:#9aa6b6;background:#c9d0da}
   body.clean #dzBtn{display:none}
+  #upBtn{position:fixed;right:10px;bottom:10px;width:16px;height:16px;padding:0;border-radius:3px;border:1px solid #ffffff66;background:#ffffff33;z-index:30;cursor:pointer}
+  #upBtn:hover{background:#ffffff88}
+  body.m-designer #upBtn, body.m-coach #upBtn, body.m-viewer #upBtn{border-color:#9aa6b6;background:#c9d0da}
+  #upBtn.new{background:#E8502A !important;border-color:#E8502A !important;box-shadow:0 0 0 3px #E8502A55}
+  body.clean #upBtn, body.clean #upPanel{display:none !important}
+  #upPanel{display:none;position:fixed;right:10px;bottom:34px;width:340px;max-height:70vh;overflow:auto;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px #0003;z-index:40;padding:12px 14px;font-size:14px;color:var(--ink)}
+  #upPanel.open{display:block}
+  .uphead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .uphead button{border:none;background:none;font-size:15px;padding:2px 6px}
+  .upstatus{font-size:13px;border-radius:8px;padding:8px 10px;margin-bottom:10px;background:#f4f6f9}
+  .upstatus.ok{background:#e7f6ed;color:#0b5e3d}
+  .upstatus.warn{background:#fdeee9;color:#9a3412}
+  .upstatus button{margin-top:6px;font-size:13px;padding:4px 10px}
+  #upList{list-style:none;margin:0;padding:0}
+  #upList li{padding:7px 0;border-top:1px solid var(--line);line-height:1.4}
+  #upList li small{display:block;color:var(--muted);font-size:12px}
   /* modusbalk */
   #modeBar{display:none;align-items:center;gap:10px;margin-bottom:10px;font-size:14px;color:var(--muted)}
   body.m-designer #modeBar, body.m-coach #modeBar, body.m-viewer #modeBar{display:flex}
@@ -235,6 +251,14 @@
   </div>
 </div>
 <button id="dzBtn" title="Designer modus"></button>
+<div id="upWrap">
+  <button id="upBtn" title="Laatste updates"></button>
+  <div id="upPanel">
+    <div class="uphead"><b>Laatste updates</b><button id="upClose" title="Sluiten">✕</button></div>
+    <div id="upStatus" class="upstatus"></div>
+    <ul id="upList"></ul>
+  </div>
+</div>
 
 <div class="wrap">
   <div id="modeBar"><span class="pill" id="modePill"></span><span id="modeWho"></span><button class="setbtn" id="toSettings" style="margin-left:auto">⚙ Instellingen</button><button class="linkbtn" id="toMenu">← Menu</button></div>
@@ -465,10 +489,11 @@ const SRC={
   fsbar:document.getElementById('fsbar').outerHTML,
   screens:document.getElementById('screens').outerHTML,
   dz:document.getElementById('dzBtn').outerHTML,
+  up:document.getElementById('upWrap').outerHTML,
 };
 function buildHtml(data){
   return '<!DOCTYPE html>\n<html lang="nl">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>Zaalhockey formaties</title>\n'
-    +'<script id="embedded" type="application/json">'+data+'</'+'script>\n'+SRC.css+'\n</head>\n<body class="m-start">\n'+SRC.screens+'\n'+SRC.dz+'\n'+SRC.wrap+'\n\n'+SRC.fsbar+'\n\n'+SRC.pbar+'\n\n<'+'script>'+SRC.js+'</'+'script>\n</body>\n</html>\n';
+    +'<script id="embedded" type="application/json">'+data+'</'+'script>\n'+SRC.css+'\n</head>\n<body class="m-start">\n'+SRC.screens+'\n'+SRC.dz+'\n'+SRC.up+'\n'+SRC.wrap+'\n\n'+SRC.fsbar+'\n\n'+SRC.pbar+'\n\n<'+'script>'+SRC.js+'</'+'script>\n</body>\n</html>\n';
 }
 const NS='http://www.w3.org/2000/svg';
 const S=25, OX=50, OY=40, W=40*S, H=20*S, CY=OY+H/2;
@@ -1522,6 +1547,35 @@ $('vErase').addEventListener('click',()=>{board.steps[curStep].objs=objs().filte
 const LS_OPM='zh-formaties-opmerkingen';
 function opmKey(it){return it?(it.kind+':'+(it.kind==='anim'?(it.board.id+':'+it.ai):it.name)):'';}
 $('vNotes').addEventListener('input',()=>{if(!vCur)return;const m=lsGet(LS_OPM)||{};m[opmKey(vCur)]=$('vNotes').value;lsSet(LS_OPM,m);});
+
+/* ---------- laatste updates en live-check ---------- */
+const APP_VERSION='2026-11-26.4';
+const CHANGELOG=[
+  {v:'2026-11-26.4',d:'26 nov',t:'Knopje rechtsonder met de laatste updates en of je de nieuwste live versie hebt'},
+  {v:'2026-11-26.3',d:'26 nov',t:'Zaalhockey voor mij (coach): tabbladen Opbouw, Verdediging (press), Strafcorner, Shoot-out en Tips and Tricks'},
+  {v:'2026-11-26.2',d:'26 nov',t:'Sticks draaien, spelers verplaatsen en tekenen in Zaalhockey voor mij, opmerkingen rechts naast het veld'},
+  {v:'2026-11-26.1',d:'26 nov',t:'Nieuw menu met instellingen, niveaus per opstelling, Huisje opbouw (Ligbed), Box 2-2 verwijderd, AMHC-logo'},
+  {v:'2026-11-26.0',d:'26 nov',t:'Startscherm (speler/coach en niveau), designer modus, meerdere animaties per oefening'},
+];
+const IS_LIVE_SITE=/github\.io$/.test(location.hostname);
+let liveVersion=null;
+async function checkLive(){
+  if(!IS_LIVE_SITE) return null;
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'}); const j=await r.json(); liveVersion=j.version||null;}catch(e){liveVersion=null;}
+  $('upBtn').classList.toggle('new',!!liveVersion&&liveVersion>APP_VERSION);
+  return liveVersion;
+}
+function renderUpdates(){
+  const st=$('upStatus'); st.className='upstatus';
+  if(!IS_LIVE_SITE){st.textContent='Jouw versie: '+APP_VERSION+'. De live-check werkt op nivigon.github.io/zaaltool.';}
+  else if(liveVersion===null){st.textContent='Jouw versie: '+APP_VERSION+'. Live-versie kon niet worden opgehaald.';}
+  else if(liveVersion>APP_VERSION){st.className='upstatus warn';st.innerHTML='Er staat een nieuwere versie live ('+escapeHtml(liveVersion)+'). Jij hebt '+APP_VERSION+'.<br><button id="upReload" class="primary">Herladen</button>';$('upReload').onclick=()=>location.reload();}
+  else{st.className='upstatus ok';st.textContent='✓ Je hebt de nieuwste live versie ('+APP_VERSION+').';}
+  $('upList').innerHTML=CHANGELOG.map(c=>`<li>${escapeHtml(c.t)}<small>${c.d} · versie ${c.v}${c.v===APP_VERSION?' · deze versie':''}</small></li>`).join('');
+}
+$('upBtn').addEventListener('click',async()=>{const p=$('upPanel');if(p.classList.contains('open')){p.classList.remove('open');return;}renderUpdates();p.classList.add('open');await checkLive();renderUpdates();});
+$('upClose').addEventListener('click',()=>$('upPanel').classList.remove('open'));
+checkLive();
 
 /* ---------- start ---------- */
 const hadLocal=!!lsGet(LS_CUR);
