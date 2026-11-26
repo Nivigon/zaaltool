@@ -208,6 +208,16 @@
   li.open .ptt .arr{transform:rotate(90deg)}
   .ptplay{flex:0 0 auto;font-size:12px;padding:4px 9px;border-radius:20px;background:var(--accent);color:#fff;border-color:var(--accent)}
   .ptplay:hover{background:#114a6e}
+  .stepbar{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;padding:10px 12px;background:#eef6fc;border:2px solid #bcd6ea;border-radius:12px}
+  body.m-viewer .stepbar.has{display:flex}
+  .sblbl{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin-right:4px}
+  .stepbar > button{font-size:16px;padding:7px 12px;border-radius:9px}
+  .sbsteps{display:flex;gap:6px}
+  .sbsteps button{min-width:42px;font-size:16px;font-weight:800;padding:7px 10px;border-radius:9px;border:2px solid #bcd6ea;background:#fff}
+  .sbsteps button.cur{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .stepbar .val{margin-left:auto;color:var(--muted);font-size:14px}
+  body.m-viewer .caption{font-size:19px;margin-top:10px}
+  .ptnum{flex:0 0 22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:800;display:inline-grid;place-items:center}
   .ptbody{display:none;font-size:14px;line-height:1.5;color:#33404d;padding:0 0 10px 20px;white-space:pre-wrap}
   li.open .ptbody{display:block}
   .ptempty{font-size:13px;color:var(--muted);padding:4px 0}
@@ -247,6 +257,47 @@
   .vitem.cur{background:var(--accent);color:#fff;border-color:var(--accent)}
   .vctl{display:flex;gap:8px;align-items:center}
   .empty{color:var(--muted);font-size:14px}
+  /* ---------- telefoon ---------- */
+  @media (max-width:700px){
+    .wrap{padding:8px}
+    body.m-viewer .wrap{grid-template-columns:1fr;padding:8px;gap:10px}
+    body.m-viewer #vSide{grid-column:1}
+    #modeBar{flex-wrap:wrap;gap:6px;font-size:13px}
+    #modeBar #modeWho{display:none}
+    #screens{padding:12px;align-items:flex-start}
+    .card{padding:20px 18px}
+    .card h1{font-size:22px}
+    .cardHead .logo{width:54px}
+    .choice button{flex:1 1 100px;padding:12px 8px;font-size:15px}
+    .tile.big{min-height:0;padding:20px 16px}
+    .tile.big b{font-size:20px}
+    .catmenu{max-width:none}
+    .cattile{padding:14px 14px;grid-template-columns:42px 1fr}
+    .cattile b{font-size:18px}
+    .cathead h2{font-size:22px}
+    .cathead button{padding:7px 10px;font-size:14px}
+    #vCatList{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding:8px}
+    #vCatList .vitem{flex:0 0 auto}
+    .sheet{padding:10px}
+    .sheetHead{gap:10px}
+    .sheetHead .logo{width:36px}
+    .title{font-size:18px}
+    .sub{font-size:13px;margin-bottom:6px}
+    .stepTag{top:12px;right:12px;font-size:12px}
+    body.rotfield svg#svg{max-height:74vh;width:auto;margin:0 auto}
+    .legend{display:none}
+    .stepbar{gap:6px;padding:8px}
+    .stepbar .val, .sblbl{display:none}
+    .stepbar > button{padding:8px 10px}
+    .sbsteps{gap:4px;flex-wrap:wrap}
+    .sbsteps button{min-width:36px;padding:7px 6px}
+    body.m-viewer .caption{font-size:16px}
+    .xbox{flex-basis:100%}
+    .tipview{padding:16px}
+    #upPanel{left:10px;right:10px;width:auto}
+    .bar{padding:8px;gap:6px}
+    .grp{padding-right:6px}
+  }
 </style>
 </head>
 <body class="m-start">
@@ -418,11 +469,21 @@
     </div></div>
     <svg id="svg" viewBox="0 0 1100 580" xmlns="http://www.w3.org/2000/svg">
       <defs></defs>
+      <g id="world">
       <g id="field"></g>
       <g id="arrows"></g>
       <g id="tokens"></g>
       <path id="ghost" fill="none" stroke="#fff" stroke-width="4" opacity=".6" style="display:none"/>
+      </g>
     </svg>
+    <div id="vPlayBox" class="stepbar">
+      <span class="sblbl">Stappen</span>
+      <button id="vPrev" title="Vorige stap">◀</button>
+      <div id="vStepBtns" class="sbsteps"></div>
+      <button id="vNext" title="Volgende stap">▶</button>
+      <button id="vPlay" class="primary">▶ Afspelen</button>
+      <span class="val" id="vStep"></span>
+    </div>
     <div class="caption" id="captionView"></div>
     <div class="explain" id="explain"></div>
     <div class="legend">
@@ -438,15 +499,11 @@
   <div class="tipview" id="tipView"><h2 id="tipTitle"></h2><div id="tipBody"></div></div>
   <aside id="vSide">
     <div class="vbox" id="vPointsBox">
-      <div class="pthd"><h4>Opmerkingen</h4><button id="ptEdit" class="ptedit">✎ Bewerken</button></div>
+      <div class="pthd"><h4>Uitleg</h4><button id="ptEdit" class="ptedit">✎ Bewerken</button></div>
       <ul id="ptList" class="ptlist"></ul>
       <div id="ptEditor" class="pteditor"></div>
     </div>
-    <div class="vbox" id="vPlayBox">
-      <h4>Afspelen</h4>
-      <div class="vctl"><button id="vPrev">◀</button><button id="vPlay" class="primary">▶ Afspelen</button><button id="vNext">▶|</button></div>
-      <div class="val" id="vStep" style="margin-top:6px"></div>
-    </div>
+
 
     <div class="vbox" id="vDrawBox">
       <h4>Tekenen</h4>
@@ -530,6 +587,10 @@ const NS='http://www.w3.org/2000/svg';
 const S=25, OX=50, OY=40, W=40*S, H=20*S, CY=OY+H/2;
 const $=id=>document.getElementById(id);
 const svg=$('svg'), defs=svg.querySelector('defs');
+const gWorld=$('world');
+// op een telefoon (smal scherm) staat het hele veld rechtop
+const MQ_PHONE=window.matchMedia('(max-width: 700px)');
+let ROT=false;
 const gField=$('field'), gArrows=$('arrows'), gTokens=$('tokens'), ghost=$('ghost');
 const COLORS={red:'#d62828',green:'#1f9d3a',k1:'#ffd400',k2:'#8e24aa'};
 const TEXT={red:'#fff',green:'#fff',k1:'#111',k2:'#fff'};
@@ -552,7 +613,12 @@ const cpos=(xm,ym)=>[C.CX+xm*C.S,C.BL+ym*C.S];
 function drawField(view){
   VIEW=view==='corner'?'corner':'full';
   gField.innerHTML='';
-  const [vw,vh]=VB[VIEW]; svg.setAttribute('viewBox',`0 0 ${vw} ${vh}`); document.documentElement.style.setProperty('--ar',(vw/vh).toFixed(3));
+  const [vw,vh]=VB[VIEW];
+  ROT=MQ_PHONE.matches&&VIEW==='full';
+  if(ROT){svg.setAttribute('viewBox',`0 0 ${vh} ${vw}`);gWorld.setAttribute('transform',`translate(${vh},0) rotate(90)`);}
+  else{svg.setAttribute('viewBox',`0 0 ${vw} ${vh}`);gWorld.removeAttribute('transform');}
+  document.body.classList.toggle('rotfield',ROT);
+  document.documentElement.style.setProperty('--ar',(ROT?vh/vw:vw/vh).toFixed(3));
   const L={fill:'none',stroke:'#fff','stroke-width':3};
   el('rect',{x:0,y:0,width:vw,height:vh,fill:'#155a85',rx:14},gField);
   if(VIEW==='full'){
@@ -712,7 +778,7 @@ function makeEl(o,interactive){
       el('circle',{class:'ring',r:14,fill:'none'},g);
     }else if(o.type==='text'){
       r.txt=el('text',{class:'free','text-anchor':'middle','dominant-baseline':'central','font-weight':700,'font-family':'system-ui,sans-serif','stroke-width':4,'paint-order':'stroke','stroke-linejoin':'round'},g);
-      r.txt.textContent=o.label; styleText(o,r);
+      r.txt.textContent=o.label; styleText(o,r); upright(r.txt);
     }else{
       if((o.type==='red'||o.type==='green')&&board.sticks!==false){
         // stick: rood altijd naar beneden, groen altijd naar boven
@@ -729,7 +795,7 @@ function makeEl(o,interactive){
       el('circle',{r:18,fill:COLORS[o.type],stroke:'#fff','stroke-width':3},g);
       el('circle',{class:'ring',r:24,fill:'none'},g);
       r.txt=el('text',{'text-anchor':'middle','dominant-baseline':'central','font-size':17,'font-weight':700,'font-family':'system-ui,sans-serif',fill:TEXT[o.type],y:1},g);
-      r.txt.textContent=o.label;
+      r.txt.textContent=o.label; upright(r.txt);
     }
     g.setAttribute('transform',`translate(${o.x},${o.y})`);
     if(interactive) g.addEventListener('pointerdown',e=>startDrag(e,o));
@@ -769,7 +835,10 @@ function removeSelected(){
 }
 
 /* ---------- pointer ---------- */
-function pt(evt){const p=svg.createSVGPoint();p.x=evt.clientX;p.y=evt.clientY;return p.matrixTransform(svg.getScreenCTM().inverse());}
+function pt(evt){const p=svg.createSVGPoint();p.x=evt.clientX;p.y=evt.clientY;return p.matrixTransform(gWorld.getScreenCTM().inverse());}
+// teksten in spelers en losse teksten blijven rechtop als het veld gedraaid is
+function upright(t){if(ROT)t.setAttribute('transform','rotate(-90)');}
+MQ_PHONE.addEventListener&&MQ_PHONE.addEventListener('change',()=>{if(!board)return;drawField(VIEW);render();});
 const clampX=x=>Math.max(15,Math.min(VB[VIEW][0]-15,x)), clampY=y=>Math.max(15,Math.min(VB[VIEW][1]-15,y));
 let drag=null, drawing=null;
 function startDrag(e,o){
@@ -1573,14 +1642,18 @@ function showItem(it){
   }
 }
 function updateViewerCtl(){
-  $('vPlayBox').style.display=board.steps.length>1?'':'none';
+  const n=board.steps.length;
+  $('vPlayBox').classList.toggle('has',n>1);
+  const sb=$('vStepBtns'); sb.innerHTML='';
+  for(let i=0;i<n&&n>1;i++){const b=document.createElement('button');b.textContent=i+1;b.title=board.steps[i].caption||('Stap '+(i+1));if(i===curStep)b.classList.add('cur');
+    b.addEventListener('click',()=>{stopPlay();const go=()=>{if(animating){setTimeout(go,80);return;}if(i!==curStep)animateTo(i);};go();});sb.appendChild(b);}
   $('vStep').textContent=board.steps.length>1?`Stap ${curStep+1} / ${board.steps.length}`:'';
   ['vPrev','vPlay','vNext'].forEach(id=>$(id).disabled=board.steps.length<2);
   $('vPlay').textContent=playing?'⏸ Pauze':'▶ Afspelen';
 }
 $('vPlay').addEventListener('click',togglePlay);
-$('vNext').addEventListener('click',()=>{if(!animating){stopPlay();animateTo(curStep+1);}});
-$('vPrev').addEventListener('click',()=>{if(!animating){stopPlay();animateTo(curStep-1);}});
+$('vNext').addEventListener('click',()=>{stopPlay();const go=()=>{if(animating){setTimeout(go,80);return;}animateTo(curStep+1);};go();});
+$('vPrev').addEventListener('click',()=>{stopPlay();const go=()=>{if(animating){setTimeout(go,80);return;}animateTo(curStep-1);};go();});
 $('vPresent').addEventListener('click',enterPresent);
 document.querySelectorAll('#vDrawBox .vt').forEach(b=>b.addEventListener('click',()=>{
   setTool(b.dataset.vt); document.querySelectorAll('#vDrawBox .vt').forEach(x=>x.classList.toggle('on',x===b));
@@ -1609,10 +1682,10 @@ function renderPoints(){
   const pts=getPoints(vCur);
   if(!ptEditing){
     list.innerHTML='';
-    if(!pts.length){list.innerHTML='<li class="ptempty">'+(vCur?'Nog geen opmerkingen bij dit onderdeel.':'')+'</li>';return;}
-    pts.forEach(p=>{
+    if(!pts.length){list.innerHTML='<li class="ptempty">'+(vCur?'Nog geen uitleg bij dit onderdeel.':'')+'</li>';return;}
+    pts.forEach((p,pi)=>{
       const li=document.createElement('li');
-      li.innerHTML=`<div class="pthead"><button class="ptt"><span class="arr">▶</span><span>${escapeHtml(p.t||'')}</span></button>${p.anim&&findAnim(p.anim)?'<button class="ptplay" title="Speel de animatie af">▶ Afspelen</button>':''}</div><div class="ptbody"></div>`;
+      li.innerHTML=`<div class="pthead"><button class="ptt"><span class="ptnum">${pi+1}</span><span style="flex:1">${escapeHtml(p.t||'')}</span><span class="arr">▶</span></button>${p.anim&&findAnim(p.anim)?'<button class="ptplay" title="Speel de animatie af">▶ Afspelen</button>':''}</div><div class="ptbody"></div>`;
       li.querySelector('.ptbody').textContent=p.x||'';
       li.querySelector('.ptt').addEventListener('click',()=>li.classList.toggle('open'));
       const pl=li.querySelector('.ptplay'); if(pl) pl.addEventListener('click',()=>playLinked(p.anim));
@@ -1649,8 +1722,10 @@ function playLinked(ref){
 }
 
 /* ---------- laatste updates en live-check ---------- */
-const APP_VERSION='2026-11-26.9';
+const APP_VERSION='2026-11-26.11';
 const CHANGELOG=[
+  {v:'2026-11-26.11',d:'26 nov',t:'Werkt nu ook op de telefoon: veld staat rechtop, alles onder elkaar en goed te bedienen'},
+  {v:'2026-11-26.10',d:'26 nov',t:'Stappenbalk onder het veld: klik direct naar elke stap. Opmerkingen heten nu Uitleg, genummerd'},
   {v:'2026-11-26.9',d:'26 nov',t:'Opbouw: opmerking Positie of persoon, animatie gaat nu van dobbelsteen 5 naar huisje'},
   {v:'2026-11-26.8',d:'26 nov',t:'Opbouw: opmerking Formatie en de animatie Van dobbelsteen naar huisje'},
   {v:'2026-11-26.7',d:'26 nov',t:'Press start met groene dobbelsteen 5, Opbouw met groen huisje. Drie opmerkingen bij Press, met de animatie Schuif mee, ben één geheel'},
@@ -1664,17 +1739,18 @@ const CHANGELOG=[
 ];
 const IS_LIVE_SITE=/github\.io$/.test(location.hostname);
 let liveVersion=null;
+const newerVer=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true})>0;
 async function checkLive(){
   if(!IS_LIVE_SITE) return null;
   try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'}); const j=await r.json(); liveVersion=j.version||null;}catch(e){liveVersion=null;}
-  $('upBtn').classList.toggle('new',!!liveVersion&&liveVersion>APP_VERSION);
+  $('upBtn').classList.toggle('new',!!liveVersion&&newerVer(liveVersion,APP_VERSION));
   return liveVersion;
 }
 function renderUpdates(){
   const st=$('upStatus'); st.className='upstatus';
   if(!IS_LIVE_SITE){st.textContent='Jouw versie: '+APP_VERSION+'. De live-check werkt op nivigon.github.io/zaaltool.';}
   else if(liveVersion===null){st.textContent='Jouw versie: '+APP_VERSION+'. Live-versie kon niet worden opgehaald.';}
-  else if(liveVersion>APP_VERSION){st.className='upstatus warn';st.innerHTML='Er staat een nieuwere versie live ('+escapeHtml(liveVersion)+'). Jij hebt '+APP_VERSION+'.<br><button id="upReload" class="primary">Herladen</button>';$('upReload').onclick=()=>location.reload();}
+  else if(newerVer(liveVersion,APP_VERSION)){st.className='upstatus warn';st.innerHTML='Er staat een nieuwere versie live ('+escapeHtml(liveVersion)+'). Jij hebt '+APP_VERSION+'.<br><button id="upReload" class="primary">Herladen</button>';$('upReload').onclick=()=>location.reload();}
   else{st.className='upstatus ok';st.textContent='✓ Je hebt de nieuwste live versie ('+APP_VERSION+').';}
   $('upList').innerHTML=CHANGELOG.map(c=>`<li>${escapeHtml(c.t)}<small>${c.d} · versie ${c.v}${c.v===APP_VERSION?' · deze versie':''}</small></li>`).join('');
 }
