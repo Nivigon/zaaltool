@@ -286,6 +286,8 @@
     .stepTag{top:12px;right:12px;font-size:12px}
     body.rotfield svg#svg{max-height:74vh;width:auto;margin:0 auto}
     .legend{display:none}
+    body.m-viewer #vDrawBox, body.m-viewer #vMoveBox{display:none !important}
+    body.m-viewer svg#svg{touch-action:pan-y}
     .stepbar{gap:6px;padding:8px}
     .stepbar .val, .sblbl{display:none}
     .stepbar > button{padding:8px 10px}
@@ -842,6 +844,7 @@ MQ_PHONE.addEventListener&&MQ_PHONE.addEventListener('change',()=>{if(!board)ret
 const clampX=x=>Math.max(15,Math.min(VB[VIEW][0]-15,x)), clampY=y=>Math.max(15,Math.min(VB[VIEW][1]-15,y));
 let drag=null, drawing=null;
 function startDrag(e,o){
+  if(MODE==='viewer'&&MQ_PHONE.matches)return;
   if(animating)return;
   if(['run','pass','line','pen','text'].includes(tool)&&!document.body.classList.contains('clean'))return; // laat tekenen doorgaan vanaf een speler
   e.stopPropagation(); e.preventDefault();
@@ -853,6 +856,7 @@ function startDrag(e,o){
 let rot=null;
 const STICK_BASE={red:Math.atan2(45,26)*180/Math.PI, green:Math.atan2(-45,-26)*180/Math.PI};
 function startRotate(e,o){
+  if(MODE==='viewer'&&MQ_PHONE.matches)return;
   if(animating||document.body.classList.contains('clean'))return;
   e.stopPropagation(); e.preventDefault();
   select(o.id);
@@ -866,6 +870,7 @@ function nextNum(type){
 function addObj(o){objs().push(o); els.set(o.id,makeEl(o,true)); markDirty(); return o;}
 
 svg.addEventListener('pointerdown',e=>{
+  if(MODE==='viewer'&&MQ_PHONE.matches)return;
   if(MODE==='viewer'&&!(profile.role==='coach'&&['run','pen'].includes(tool))){select(null);return;}
   if(animating||document.body.classList.contains('clean'))return;
   const p=pt(e);
@@ -1722,8 +1727,9 @@ function playLinked(ref){
 }
 
 /* ---------- laatste updates en live-check ---------- */
-const APP_VERSION='2026-11-26.11';
+const APP_VERSION='2026-11-26.12';
 const CHANGELOG=[
+  {v:'2026-11-26.12',d:'26 nov',t:'Telefoon: alleen kijken (animaties en uitleg), geen tekenen of verslepen, en scrollen over het veld werkt'},
   {v:'2026-11-26.11',d:'26 nov',t:'Werkt nu ook op de telefoon: veld staat rechtop, alles onder elkaar en goed te bedienen'},
   {v:'2026-11-26.10',d:'26 nov',t:'Stappenbalk onder het veld: klik direct naar elke stap. Opmerkingen heten nu Uitleg, genummerd'},
   {v:'2026-11-26.9',d:'26 nov',t:'Opbouw: opmerking Positie of persoon, animatie gaat nu van dobbelsteen 5 naar huisje'},
