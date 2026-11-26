@@ -784,12 +784,12 @@ function makeEl(o,interactive){
     }else{
       if((o.type==='red'||o.type==='green')&&board.sticks!==false){
         // stick: rood altijd naar beneden, groen altijd naar boven
-        const d=o.type==='red'?'M17,-16 L26,45':'M-17,16 L-26,-45';
-        const sg=el('g',{class:'stick',transform:`rotate(${o.sa||0})`},g); r.stick=sg;
+        const d=o.type==='red'?'M19,-12 L19,46':'M-19,12 L-19,-46';
+        const sg=el('g',{class:'stick',transform:`rotate(${stickRot(o.sa)})`},g); r.stick=sg;
         el('path',{d,stroke:'transparent','stroke-width':18,'stroke-linecap':'round'},sg);
         el('path',{d,stroke:'#fff','stroke-width':9,'stroke-linecap':'round'},sg);
         el('path',{d,stroke:'#111','stroke-width':5,'stroke-linecap':'round'},sg);
-        const tip=o.type==='red'?[26,45]:[-26,-45];
+        const tip=o.type==='red'?[19,46]:[-19,-46];
         el('circle',{class:'shandle',cx:tip[0],cy:tip[1],r:7},sg);
         if(interactive) sg.addEventListener('pointerdown',e=>startRotate(e,o));
       }
@@ -839,6 +839,8 @@ function removeSelected(){
 /* ---------- pointer ---------- */
 function pt(evt){const p=svg.createSVGPoint();p.x=evt.clientX;p.y=evt.clientY;return p.matrixTransform(gWorld.getScreenCTM().inverse());}
 // teksten in spelers en losse teksten blijven rechtop als het veld gedraaid is
+// sticks blijven verticaal in beeld, ook als het veld op de telefoon rechtop staat
+function stickRot(sa){return (sa||0)+(ROT?-90:0);}
 function upright(t){if(ROT)t.setAttribute('transform','rotate(-90)');}
 MQ_PHONE.addEventListener&&MQ_PHONE.addEventListener('change',()=>{if(!board)return;drawField(VIEW);render();});
 const clampX=x=>Math.max(15,Math.min(VB[VIEW][0]-15,x)), clampY=y=>Math.max(15,Math.min(VB[VIEW][1]-15,y));
@@ -854,7 +856,7 @@ function startDrag(e,o){
 }
 // stick draaien: pak de stick vast en draai hem rond de speler
 let rot=null;
-const STICK_BASE={red:Math.atan2(45,26)*180/Math.PI, green:Math.atan2(-45,-26)*180/Math.PI};
+const STICK_BASE={red:Math.atan2(46,19)*180/Math.PI, green:Math.atan2(-46,-19)*180/Math.PI};
 function startRotate(e,o){
   if(MODE==='viewer'&&MQ_PHONE.matches)return;
   if(animating||document.body.classList.contains('clean'))return;
@@ -896,7 +898,7 @@ svg.addEventListener('pointermove',e=>{
   if(rot){const p=pt(e),o=rot.o;
     let a=Math.atan2(p.y-o.y,p.x-o.x)*180/Math.PI-STICK_BASE[o.type];
     a=((a+540)%360)-180; o.sa=Math.round(a); rot.moved=true;
-    const r=els.get(o.id); if(r&&r.stick) r.stick.setAttribute('transform',`rotate(${o.sa})`);}
+    const r=els.get(o.id); if(r&&r.stick) r.stick.setAttribute('transform',`rotate(${stickRot(o.sa)})`);}
   if(drag){const p=pt(e);const o=drag.o;o.x=Math.round(clampX(p.x+drag.dx));o.y=Math.round(clampY(p.y+drag.dy));drag.moved=true;
     els.get(o.id).g.setAttribute('transform',`translate(${o.x},${o.y})`);}
   if(drawing){const p=pt(e);
@@ -1132,7 +1134,7 @@ function animateTo(target){
         if(it.kind==='move'){
           const x=it.a.x+(it.b.x-it.a.x)*e, y=it.a.y+(it.b.y-it.a.y)*e;
           it.r.g.setAttribute('transform',`translate(${x},${y})`);
-          if(it.r.stick&&(it.a.sa||0)!==(it.b.sa||0)){let d=(it.b.sa||0)-(it.a.sa||0);d=((d+540)%360)-180;it.r.stick.setAttribute('transform',`rotate(${(it.a.sa||0)+d*e})`);}
+          if(it.r.stick&&(it.a.sa||0)!==(it.b.sa||0)){let d=(it.b.sa||0)-(it.a.sa||0);d=((d+540)%360)-180;it.r.stick.setAttribute('transform',`rotate(${stickRot((it.a.sa||0)+d*e)})`);}
         }else if(it.line){
           // vooruit: oude lijnen blijven tijdens de beweging, nieuwe komen aan het eind
           const fade=backwards?clamp01(p/0.25):clamp01((p-0.75)/0.25);
@@ -1727,8 +1729,9 @@ function playLinked(ref){
 }
 
 /* ---------- laatste updates en live-check ---------- */
-const APP_VERSION='2026-11-26.12';
+const APP_VERSION='2026-11-26.13';
 const CHANGELOG=[
+  {v:'2026-11-26.13',d:'26 nov',t:'Sticks staan verticaal: groen naar boven, rood naar beneden (ook in de animaties en op de telefoon)'},
   {v:'2026-11-26.12',d:'26 nov',t:'Telefoon: alleen kijken (animaties en uitleg), geen tekenen of verslepen, en scrollen over het veld werkt'},
   {v:'2026-11-26.11',d:'26 nov',t:'Werkt nu ook op de telefoon: veld staat rechtop, alles onder elkaar en goed te bedienen'},
   {v:'2026-11-26.10',d:'26 nov',t:'Stappenbalk onder het veld: klik direct naar elke stap. Opmerkingen heten nu Uitleg, genummerd'},
