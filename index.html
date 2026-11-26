@@ -198,12 +198,21 @@
   .vt.on{background:var(--accent);color:#fff;border-color:var(--accent)}
   #vNotes{margin-top:0;min-height:160px;border-style:solid}
   body.m-viewer.role-speler #vDrawBox{display:none}
-  .vtabs{display:none;gap:6px;flex-wrap:wrap;flex:1 1 100%}
-  body.role-coach .vtabs{display:flex}
+  .catmenu{display:none;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;flex:1 1 100%;max-width:1000px;margin:10px auto 0}
+  body.role-coach.catmode .catmenu{display:grid}
+  body.role-coach.catmode .sheet, body.role-coach.catmode #vSide, body.role-coach.catmode #vCatList, body.role-coach.catmode .tipview, body.role-coach.catmode .cathead{display:none !important}
+  .cattile{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:22px 22px;border-radius:14px;border:2px solid #d5dbe3;background:#fff;min-height:130px;cursor:pointer}
+  .cattile:hover{border-color:var(--accent);background:#f4f9fd}
+  .cattile .ic{font-size:32px}
+  .cattile b{font-size:21px}
+  .cattile small{color:var(--muted);font-size:14px}
+  .cathead{display:none;align-items:center;gap:14px;flex:1 1 100%}
+  body.role-coach .cathead{display:flex}
+  .cathead h2{margin:0;font-size:30px}
+  .cathead button{font-size:15px;font-weight:700;padding:8px 14px;border-radius:10px}
   body.role-coach #vAnims, body.role-coach #vPatterns, body.role-coach #vForms{display:none}
   body.role-speler #vCatList{display:none}
-  .vtab{font-size:15px;font-weight:700;padding:10px 16px;border-radius:10px;border:2px solid #d5dbe3;background:#fff}
-  .vtab.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
   .tipview{display:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px 26px;grid-column:1;min-height:300px}
   .tipview h2{margin:0 0 12px}
   .tipview p{font-size:16px;line-height:1.6}
@@ -261,10 +270,11 @@
 </div>
 
 <div class="wrap">
-  <div id="modeBar"><span class="pill" id="modePill"></span><span id="modeWho"></span><button class="setbtn" id="toSettings" style="margin-left:auto">⚙ Instellingen</button><button class="linkbtn" id="toMenu">← Menu</button></div>
+  <div id="modeBar"><span class="pill" id="modePill"></span><span id="modeWho"></span><button class="setbtn" id="toSettings" style="margin-left:auto">⚙ Instellingen</button><button class="linkbtn" id="toMenu">← Hoofdmenu</button></div>
 
   <div id="viewer">
-    <div class="vtabs" id="vTabs"></div>
+    <div class="catmenu" id="vCatMenu"></div>
+    <div class="cathead" id="vCatHead"><h2 id="vCatTitle"></h2><button id="vCatMenuBtn">☰ Menu</button></div>
     <div class="vlist" id="vCatList"></div>
     <div class="vlist" id="vAnims"></div>
     <div class="vlist" id="vPatterns"></div>
@@ -1413,7 +1423,7 @@ function whoLabel(){return (ROLES[profile.role]||'')+' · '+(LEVELS[profile.leve
 var prevTool=null;
 async function setMode(m){
   stopPlay(); select(null);
-  if(MODE==='viewer'&&m!=='viewer'){document.body.classList.remove('tipmode');readOnly=false; setTool(prevTool||'red'); ['title','sub','notes'].forEach(k=>$(k).readOnly=false); if(realBoard)loadBoard(realBoard); realBoard=null;}
+  if(MODE==='viewer'&&m!=='viewer'){document.body.classList.remove('tipmode','catmode');readOnly=false; setTool(prevTool||'red'); ['title','sub','notes'].forEach(k=>$(k).readOnly=false); if(realBoard)loadBoard(realBoard); realBoard=null;}
   if(m==='viewer'&&MODE!=='viewer'){prevTool=tool;}
   MODE=m;
   document.body.classList.remove('role-speler','role-coach');
@@ -1466,19 +1476,30 @@ async function enterViewer(){
   };
   box('vAnims','Animaties','anim'); box('vPatterns','Patronen','pattern'); box('vForms','Opstellingen','form');
   if(profile.role==='coach'){
-    const tabs=$('vTabs'); tabs.innerHTML='';
-    CATS.forEach(([k,label])=>{const b=document.createElement('button');b.className='vtab';b.dataset.cat=k;b.textContent=label;b.addEventListener('click',()=>showCat(k));tabs.appendChild(b);});
-    showCat(vCat||'opbouw');
+    showCatMenu();
   }else{
     showItem(vItems.find(x=>['anim','pattern','form'].includes(x.kind))||null);
   }
 }
 var vCat=null;
+const CAT_INFO={opbouw:['🏗️','Aanvallen opzetten: opstellingen en patronen'],verdediging:['🛡️','Druk zetten en de bal afpakken'],strafcorner:['🎯','Aanvallende en verdedigende corners'],shootout:['🥅','In ontwikkeling'],tips:['💡','Wissels, onder druk, blok zetten']};
+function showCatMenu(){
+  stopPlay(); vCat=null; document.body.classList.add('catmode'); document.body.classList.remove('tipmode');
+  const m=$('vCatMenu'); m.innerHTML='';
+  CATS.forEach(([k,label])=>{
+    const n=vItems.filter(x=>x.cat===k).length;
+    const b=document.createElement('button'); b.className='cattile';
+    b.innerHTML=`<span class="ic">${CAT_INFO[k][0]}</span><b>${label}</b><small>${CAT_INFO[k][1]}${n?' · '+n+(n===1?' onderdeel':' onderdelen'):''}</small>`;
+    b.addEventListener('click',()=>showCat(k)); m.appendChild(b);
+  });
+}
+$('vCatMenuBtn').addEventListener('click',showCatMenu);
 function showCat(k){
-  vCat=k;
-  document.querySelectorAll('#vTabs .vtab').forEach(b=>b.classList.toggle('on',b.dataset.cat===k));
+  vCat=k; document.body.classList.remove('catmode');
+  $('vCatTitle').textContent=(CATS.find(c=>c[0]===k)||[,''])[1];
   const box=$('vCatList'); box.innerHTML='';
-  const its=vItems.filter(x=>x.cat===k);
+  const ord={form:0,pattern:1,corner:2,anim:3,tip:4};
+  const its=vItems.filter(x=>x.cat===k).sort((a,b)=>ord[a.kind]-ord[b.kind]);
   if(!its.length){box.insertAdjacentHTML('beforeend',k==='shootout'?'<span class="empty">Shoot-out is nog in ontwikkeling.</span>':'<span class="empty">Nog niets voor jouw niveau in deze categorie.</span>');}
   const kindLbl={anim:'Animatie',pattern:'Patroon',form:'Opstelling',corner:'Strafcorner',tip:'Tip'};
   its.forEach(it=>{const b=document.createElement('button');b.className='vitem';b.textContent=formLabel(it.name);b.title=kindLbl[it.kind]||'';b.addEventListener('click',()=>showItem(it));it.btn=b;box.appendChild(b);});
@@ -1522,8 +1543,9 @@ function showItem(it){
     showView(tb); applyPatternTo(it.name); render();
   }else{
     const tb=tempBoard(formLabel(it.name)); tb.sub='Opstelling';
-    tb.anims[0].steps[0].objs=teamObjs([],'red','k1',true,it.name);
-    tb.explain={red:{form:it.name,text:uitlegText(it.name)}};
+    const green=profile.role==='coach';
+    tb.anims[0].steps[0].objs=green?teamObjs([],'green','k2',false,it.name):teamObjs([],'red','k1',true,it.name);
+    tb.explain=green?{green:{form:it.name,text:uitlegText(it.name)}}:{red:{form:it.name,text:uitlegText(it.name)}};
     showView(tb);
   }
 }
@@ -1549,8 +1571,9 @@ function opmKey(it){return it?(it.kind+':'+(it.kind==='anim'?(it.board.id+':'+it
 $('vNotes').addEventListener('input',()=>{if(!vCur)return;const m=lsGet(LS_OPM)||{};m[opmKey(vCur)]=$('vNotes').value;lsSet(LS_OPM,m);});
 
 /* ---------- laatste updates en live-check ---------- */
-const APP_VERSION='2026-11-26.4';
+const APP_VERSION='2026-11-26.5';
 const CHANGELOG=[
+  {v:'2026-11-26.5',d:'26 nov',t:'Zaalhockey voor mij (coach) begint met een menu van onderdelen; daarna een duidelijke titel met een Menu-knop. Opstellingen worden in groen getoond'},
   {v:'2026-11-26.4',d:'26 nov',t:'Knopje rechtsonder met de laatste updates en of je de nieuwste live versie hebt'},
   {v:'2026-11-26.3',d:'26 nov',t:'Zaalhockey voor mij (coach): tabbladen Opbouw, Verdediging (press), Strafcorner, Shoot-out en Tips and Tricks'},
   {v:'2026-11-26.2',d:'26 nov',t:'Sticks draaien, spelers verplaatsen en tekenen in Zaalhockey voor mij, opmerkingen rechts naast het veld'},
